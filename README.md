@@ -1,6 +1,6 @@
-#  InMemoryCache ve DistrubutedCache Kullanımı
+#  InMemory Caching ve Distributed Caching Kullanımı
 
-Web Api üzerinde aşağıdaki metodlar  kullanılmştır.
+Web Api üzerinde aşağıdaki örnek metodlar  kullanılmştır.
 
 
 
