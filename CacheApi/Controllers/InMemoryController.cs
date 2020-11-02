@@ -72,33 +72,68 @@ namespace CacheApi.Controllers
             {
                 entry.SetValue(value);                
                 return entry.Value.ToString();
+                
             });
 
             return result;
         }
 
-        [HttpGet("getOrCreate")]
-        public string GetOrCreateWithAbsoluteAndSlidingTime(string value)
+        /// <summary>
+        /// Belirilen key icerisinde deger yok ise olsturulur.
+        /// AbsoluteExpiration : cache degeri 30 dakika boyunca RAM de tutulur.
+        /// SlidingExpiration: gelen her istekte cache suresi 1 dakika artar.
+        /// 
+        /// Priority : Silinme onceligini belirtir.
+        /// Low = 0,
+        ///Normal = 1,
+        ///High = 2,
+        ///NeverRemove = 3/
+        /// </summary>
+        /// <param name="param"></param>
+        [HttpGet("TryGetValueWithAbsoluteAndSlidingTime")]
+        public string TryGetValueWithAbsoluteAndSlidingTime(string param)
         {
-            //string result = _memoryCache.GetOrCreate<string>(key, entry =>
-            //{
-            //    entry.SetValue(value);
-            //    entry.AbsoluteExpiration = DateTime.Now.AddSeconds(30);//Cache'de ki datanın ömrü 10 saniye olarak belirlenmiştir.
-            //    entry.SlidingExpiration = TimeSpan.FromSeconds(5);//Cache'de ki datanın ömrü 2 saniye olarak belirlenmiştir.
-            //                                                      //2 saniye içerisinde bir istek yapılırsa kalış süresi 2 saniye daha uzayacaktır.
-            //                                                      //Absolute değeri belirtildiğinden dolayı bu süreç totalde 2 saniye boyunca sürecektir.
+            
 
-            //});
+            if (_memoryCache.TryGetValue<string>(key, out string value))
+            {
+                return value;
+            }
+            else
+            {
+                var cacheExpirationOptions =
+                   new MemoryCacheEntryOptions
+                   {
+                       AbsoluteExpiration = DateTime.Now.AddMinutes(30),
+                       Priority = CacheItemPriority.Normal,
+                       SlidingExpiration = TimeSpan.FromSeconds(1)
+                   };
+                _memoryCache.Set(key, param, cacheExpirationOptions);
 
-            //var cacheExpirationOptions = new MemoryCacheEntryOptions
-            //   {
-            //       AbsoluteExpiration = DateTime.Now.AddMinutes(30),
-            //       SlidingExpiration = TimeSpan.FromSeconds(0.5),
-            //       Priority = CacheItemPriority.Normal
-            //   };
+            }
+            return param;
+        }
+        /// <summary>
+        /// RegisterPostEvictionCallback : cache lenmiş datanın hangi sebeple memory den silindiginin bilgisini donduren metod
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("GetOrCreateWithRegisterPostEvictionCallback")]
+        public string GetOrCreateWithRegisterPostEvictionCallback()
+        {
+            var result = "Empty";
 
-            //return result;
-            return "";
+            string date = _memoryCache.GetOrCreate<string>(key, entry =>
+            {
+                entry.RegisterPostEvictionCallback((key, value, reason, state) =>
+                {
+                   result =($"Key : {key}\nValue : {value}\nReason : {reason}\nState : {state}");
+                });
+                DateTime value = DateTime.Now;
+                
+                return value.ToString("dd.MM.yyyy");
+            });
+
+            return result;
         }
     }
 }
