@@ -18,7 +18,7 @@ _memoryCache.TryGetValue<string>(key,out string value); _memoryCache.GetOrCreate
             });
 
 
-
+```
 ## Referanslar
 * https://docs.microsoft.com/tr-tr/aspnet/core/performance/caching/memory?view=aspnetcore-3.1
 * https://www.gencayyildiz.com/blog/redis-yazi-dizisi/
